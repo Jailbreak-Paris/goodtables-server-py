@@ -25,7 +25,7 @@ class Handler(object):
         self.__inspector = inspector
 
     async def handle(self, req):
-        options = {key: value for key, value in req.GET.items() if value}
+        options = {key: value for key, value in req.query.items() if value}
         options['preset'] = 'table'
         options['scheme'] = 'http'
         inspect = partial(self.__inspector.inspect, **options)
