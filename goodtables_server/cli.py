@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 import click
 import logging
 from aiohttp import web
+import aiohttp_cors
 from concurrent.futures import ProcessPoolExecutor
 from .handler import Handler
 
@@ -22,8 +23,19 @@ def cli(host, port, path, inspector):
     logging.basicConfig(level=logging.DEBUG)
     handler = Handler(inspector)
     app = web.Application()
+    cors = aiohttp_cors.setup(app)
+
     app['executor'] = ProcessPoolExecutor()
-    app.router.add_route('GET', path, handler.handle)
+    cors.add(
+        app.router.add_route('GET', path, handler.handle),
+        {
+            "*": aiohttp_cors.ResourceOptions(
+                allow_credentials=True,
+                allow_headers=("X-Requested-With", "Content-Type"),
+                max_age=3600,
+            )
+        },
+    )
     web.run_app(app, host=host, port=port)
 
 
