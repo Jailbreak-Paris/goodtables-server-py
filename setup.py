@@ -21,7 +21,6 @@ def read(*paths):
 PACKAGE = 'goodtables_server'
 NAME = PACKAGE.replace('_', '-')
 INSTALL_REQUIRES = [
-    'tabulator',  # This dependency could be removed later
     'goodtables',
     'aiohttp',
     'aiohttp_cors',
