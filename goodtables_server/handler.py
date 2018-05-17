@@ -26,6 +26,8 @@ class Handler(object):
 
     async def handle(self, req):
         options = {key: value for key, value in req.query.items() if value}
+        if "source" not in options:
+            return web.json_response({"error": "Missing 'source' query-string parameter"}, status=400)
         options['preset'] = 'table'
         options['scheme'] = 'http'
         inspect = partial(self.__inspector.inspect, **options)
