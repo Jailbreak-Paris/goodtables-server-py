@@ -34,6 +34,8 @@ class Handler(object):
             return web.json_response({"error": "Missing 'source' parameter"}, status=400)
         options['preset'] = 'table'
         options['scheme'] = 'http'
+        if options.get("encoding") is None:
+            options["encoding"] = "utf-8"
         inspect = partial(self.__inspector.inspect, **options)
         report = await req.app.loop.run_in_executor(req.app['executor'], inspect)
         return web.json_response(report)
