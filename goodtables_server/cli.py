@@ -1,40 +1,15 @@
 # -*- coding: utf-8 -*-
-from __future__ import division
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+import logging
 
 import click
-import logging
 from aiohttp import web
-import aiohttp_cors
-from concurrent.futures import ProcessPoolExecutor
-from .handler import Handler
 
+from .app import create_app
 
 # Module API
-
-def create_app(path='/', inspector=None):
-    handler = Handler(inspector)
-    app = web.Application()
-    app['executor'] = ProcessPoolExecutor()
-    cors = aiohttp_cors.setup(app)
-    cors_options = {
-        "*": aiohttp_cors.ResourceOptions(
-            allow_credentials=True,
-            allow_headers=("X-Requested-With", "Content-Type"),
-            max_age=3600,
-        )
-    }
-    cors.add(
-        app.router.add_route('GET', path, handler.handle_GET),
-        cors_options,
-    )
-    cors.add(
-        app.router.add_route('POST', path, handler.handle_POST),
-        cors_options,
-    )
-    return app
 
 
 @click.command()
