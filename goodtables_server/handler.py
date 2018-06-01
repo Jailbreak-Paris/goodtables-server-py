@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
-from __future__ import division
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+import json
+from functools import partial
+from importlib import import_module
+from io import BytesIO
 
 from aiohttp import web
-from functools import partial
-from goodtables import Inspector
-from importlib import import_module
 
+import tabulator.helpers
+from goodtables import Inspector
 
 # Module API
+
 
 class Handler(object):
 
@@ -38,23 +41,26 @@ class Handler(object):
             options["encoding"] = "utf-8"
         inspect = partial(self.__inspector.inspect, **options)
         report = await req.app.loop.run_in_executor(req.app['executor'], inspect)
-        return web.json_response(report)
+        return web.json_response(report, dumps=json_dumps)
 
     async def handle_POST(self, req):
         data = await req.post()
         if "source" not in data:
             return web.json_response({"error": "Missing 'source' parameter"}, status=400)
         encoding = data.get("encoding", "utf-8")
+        _, format = tabulator.helpers.detect_scheme_and_format(data["source"].filename)
         options = {
-            "encoding": encoding,
-            "format": "csv",
-            'preset': 'table',
-            'scheme': 'text',
-            "source": data["source"].file.read().decode(encoding),
+            "format": format,
+            'scheme': 'stream',
+            "source": BytesIO(data["source"].file.read()),
         }
         schema = data.get("schema")
         if schema is not None:
             options["schema"] = data["schema"]
         inspect = partial(self.__inspector.inspect, **options)
         report = await req.app.loop.run_in_executor(req.app['executor'], inspect)
-        return web.json_response(report)
+        return web.json_response(report, dumps=json_dumps)
+
+
+def json_dumps(data):
+    return json.dumps(data, default=str)
